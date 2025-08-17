@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>โอ่งเงินนักเรียน - จัดการเงินส่วนบุคคล</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Kanit', sans-serif;
+        }
+        
+        .water {
+            fill: url(#waterGradient);
+            transition: all 0.8s ease;
+        }
+        
+        /* GSAP-enhanced flowing animations */
+        .income-flow {
+            stroke-dasharray: 10 5;
+        }
+        
+        .expense-flow {
+            stroke-dasharray: 8 4;
+        }
+        
+        .arrow-element {
+            transform-origin: center;
+        }
+        
+        .label-element {
+            transform-origin: center;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold text-indigo-800 mb-2">💰 โอ่งเงินนักเรียน</h1>
+            <p class="text-gray-600">จัดการเงินส่วนบุคคลแบบง่ายๆ</p>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 gap-6 max-w-6xl mx-auto">
+            
+            <!-- Water Jar Visualization -->
+            <div class="bg-white rounded-2xl shadow-xl p-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800">สถานะโอ่งเงิน</h2>
+                    
+                    <!-- Period Selector -->
+                    <div class="bg-gray-100 rounded-lg p-1">
+                        <button id="weeklyBtn" class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-indigo-500 text-white">รายสัปดาห์</button>
+                        <button id="monthlyBtn" class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-indigo-600">รายเดือน</button>
+                    </div>
+                </div>
+
+                <!-- Water Jar SVG -->
+                <div class="flex justify-center relative">
+                    <svg width="700" height="480" viewBox="0 0 700 480" class="max-w-full">
+                        <!-- Gradient Definitions -->
+                        <defs>
+                            <linearGradient id="waterGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                <stop offset="0%" style="stop-color:#60A5FA;stop-opacity:0.9" />
+                                <stop offset="50%" style="stop-color:#3B82F6;stop-opacity:0.95" />
+                                <stop offset="100%" style="stop-color:#1E40AF;stop-opacity:1" />
+                            </linearGradient>
+                            <linearGradient id="jarInnerGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                <stop offset="0%" style="stop-color:#F8F9FA;stop-opacity:1" />
+                                <stop offset="100%" style="stop-color:#E9ECEF;stop-opacity:1" />
+                            </linearGradient>
+                            <pattern id="waterPattern" patternUnits="userSpaceOnUse" width="40" height="40">
+                                <circle cx="20" cy="20" r="2" fill="#FFFFFF" opacity="0.3">
+                                    <animate attributeName="opacity" values="0.1;0.5;0.1" dur="3s" repeatCount="indefinite"/>
+                                </circle>
+                                <circle cx="10" cy="30" r="1.5" fill="#FFFFFF" opacity="0.2">
+                                    <animate attributeName="opacity" values="0.2;0.4;0.2" dur="2.5s" repeatCount="indefinite"/>
+                                </circle>
+                                <circle cx="30" cy="10" r="1" fill="#FFFFFF" opacity="0.4">
+                                    <animate attributeName="opacity" values="0.3;0.6;0.3" dur="2s" repeatCount="indefinite"/>
+                                </circle>
+                            </pattern>
+                        </defs>
+                        
+                        <!-- Income Arrows with Labels -->
+                        <g id="incomeArrows">
+                            <!-- Income arrows will be dynamically added here -->
+                        </g>
+                        
+                        <!-- Traditional Thai Jar Shape -->
+                        <!-- Jar Body (wider at middle, narrower at top and bottom) -->
+                        <path d="M280 120 Q260 120 250 140 L240 180 Q235 220 240 260 Q245 300 270 320 L430 320 Q455 300 460 260 Q465 220 460 180 L450 140 Q440 120 420 120 Z" 
+                              fill="#D4A574" stroke="#B8956A" stroke-width="3"/>
+                        
+                        <!-- Jar Neck -->
+                        <ellipse cx="350" cy="120" rx="30" ry="8" fill="#D4A574" stroke="#B8956A" stroke-width="2"/>
+                        <rect x="320" y="112" width="60" height="16" fill="#D4A574"/>
+                        
+                        <!-- Jar Rim -->
+                        <ellipse cx="350" cy="112" rx="35" ry="10" fill="#E8C49A" stroke="#B8956A" stroke-width="2"/>
+                        
+                        <!-- Jar Inner Shadow -->
+                        <path d="M285 125 Q265 125 255 145 L245 185 Q240 225 245 265 Q250 295 275 315 L425 315 Q450 295 455 265 Q460 225 455 185 L445 145 Q435 125 415 125 Z" 
+                              fill="url(#jarInnerGradient)" stroke="none"/>
+                        
+                        <!-- Jar Texture Lines -->
+                        <path d="M250 160 Q350 155 450 160" stroke="#B8956A" stroke-width="1" fill="none" opacity="0.5"/>
+                        <path d="M245 200 Q350 195 455 200" stroke="#B8956A" stroke-width="1" fill="none" opacity="0.5"/>
+                        <path d="M240 240 Q350 235 460 240" stroke="#B8956A" stroke-width="1" fill="none" opacity="0.5"/>
+                        <path d="M245 280 Q350 275 455 280" stroke="#B8956A" stroke-width="1" fill="none" opacity="0.5"/>
+                        
+                        <!-- Water Level -->
+                        <path id="waterLevel" d="M250 310 Q350 305 450 310 L430 315 L270 315 Q250 315 250 310 Z" 
+                              class="water"/>
+                        
+                        <!-- Water Pattern Overlay -->
+                        <path id="waterPattern" d="M250 310 Q350 305 450 310 L430 315 L270 315 Q250 315 250 310 Z" 
+                              fill="url(#waterPattern)" opacity="0.6"/>
+                        
+                        <!-- Balance Display in Jar -->
+                        <text id="jarBalance" x="350" y="240" text-anchor="middle" font-size="24" font-weight="bold" fill="#1E40AF">฿0</text>
+                        <text id="jarPercentage" x="350" y="260" text-anchor="middle" font-size="14" font-weight="bold" fill="#3B82F6">0%</text>
+                        
+                        <!-- Expense Arrows with Labels -->
+                        <g id="expenseArrows">
+                            <!-- Expense arrows will be dynamically added here -->
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Status Display -->
+                <div class="grid grid-cols-3 gap-4 mt-6">
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div class="text-center">
+                            <div class="text-lg mb-1">💧</div>
+                            <div class="text-green-700 text-sm font-medium mb-1">รายรับทั้งหมด</div>
+                            <div id="totalIncome" class="text-lg font-bold text-green-800">฿0</div>
+                        </div>
+                    </div>
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div class="text-center">
+                            <div class="text-lg mb-1">💸</div>
+                            <div class="text-red-700 text-sm font-medium mb-1">รายจ่ายทั้งหมด</div>
+                            <div id="totalExpense" class="text-lg font-bold text-red-800">฿0</div>
+                        </div>
+                    </div>
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div class="text-center">
+                            <div class="text-lg mb-1">🏺</div>
+                            <div class="text-blue-700 text-sm font-medium mb-1">ยอดคงเหลือ</div>
+                            <div id="balance" class="text-lg font-bold text-blue-800">฿0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Income and Expense Management -->
+            <div class="grid lg:grid-cols-2 gap-6">
+
+                <!-- Income Management -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-green-700 flex items-center">
+                        💰 รายรับ
+                    </h2>
+                    
+                    <!-- Add Income Form -->
+                    <div class="mb-4 p-4 bg-green-50 rounded-lg">
+                        <h3 class="font-medium mb-3 text-green-800">เพิ่มรายรับใหม่</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="incomeDesc" placeholder="รายละเอียด (เช่น เงินเดือน, เงินพิเศษ)" 
+                                   class="w-full p-3 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <select id="incomeCategory" class="w-full p-3 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                                <option value="salary">💼 เงินเดือน</option>
+                                <option value="business">🏢 ธุรกิจ</option>
+                                <option value="investment">📈 การลงทุน</option>
+                                <option value="freelance">💻 งานฟรีแลนซ์</option>
+                                <option value="bonus">🎁 โบนัส</option>
+                                <option value="gift">💝 ของขวัญ</option>
+                                <option value="other">💰 อื่นๆ</option>
+                            </select>
+                            <input type="number" id="incomeAmount" placeholder="จำนวนเงิน" 
+                                   class="w-full p-3 border border-green-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                            <button onclick="addIncome()" class="w-full bg-green-500 text-white py-3 rounded-lg hover:bg-green-600 transition-colors font-medium">
+                                ➕ เพิ่มรายรับ
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Income List -->
+                    <div id="incomeList" class="space-y-2 max-h-48 overflow-y-auto">
+                        <!-- Income items will be added here -->
+                    </div>
+                </div>
+
+                <!-- Expense Management -->
+                <div class="bg-white rounded-2xl shadow-xl p-6">
+                    <h2 class="text-xl font-semibold mb-4 text-red-700 flex items-center">
+                        💸 รายจ่าย
+                    </h2>
+                    
+                    <!-- Add Expense Form -->
+                    <div class="mb-4 p-4 bg-red-50 rounded-lg">
+                        <h3 class="font-medium mb-3 text-red-800">เพิ่มรายจ่ายใหม่</h3>
+                        <div class="space-y-3">
+                            <input type="text" id="expenseDesc" placeholder="รายละเอียด (เช่น ค่าอาหาร, ค่าผ่อน)" 
+                                   class="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <select id="expenseCategory" class="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                                <option value="food">🍽️ อาหาร</option>
+                                <option value="transport">🚗 ค่าเดินทาง</option>
+                                <option value="entertainment">🎮 ความบันเทิง</option>
+                                <option value="education">📚 การศึกษา</option>
+                                <option value="health">🏥 สุขภาพ</option>
+                                <option value="debt">💳 ค่าผ่อน/หนี้</option>
+                                <option value="other">💸 อื่นๆ</option>
+                            </select>
+                            <input type="number" id="expenseAmount" placeholder="จำนวนเงิน" 
+                                   class="w-full p-3 border border-red-200 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent">
+                            <button onclick="addExpense()" class="w-full bg-red-500 text-white py-3 rounded-lg hover:bg-red-600 transition-colors font-medium">
+                                ➕ เพิ่มรายจ่าย
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Expense List -->
+                    <div id="expenseList" class="space-y-2 max-h-48 overflow-y-auto">
+                        <!-- Expense items will be added here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage using localStorage (JSONP-like local storage)
+        let currentPeriod = 'weekly';
+        let data = {
+            weekly: { income: [], expenses: [] },
+            monthly: { income: [], expenses: [] }
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const savedData = localStorage.getItem('moneyJarData');
+            if (savedData) {
+                data = JSON.parse(savedData);
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('moneyJarData', JSON.stringify(data));
+        }
+
+        // Initialize app
+        function init() {
+            loadData();
+            updateDisplay();
+            updateWaterLevel();
+        }
+
+        // Period switching
+        document.getElementById('weeklyBtn').addEventListener('click', () => {
+            currentPeriod = 'weekly';
+            document.getElementById('weeklyBtn').className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-indigo-500 text-white';
+            document.getElementById('monthlyBtn').className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-indigo-600';
+            updateDisplay();
+            updateWaterLevel();
+        });
+
+        document.getElementById('monthlyBtn').addEventListener('click', () => {
+            currentPeriod = 'monthly';
+            document.getElementById('monthlyBtn').className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-indigo-500 text-white';
+            document.getElementById('weeklyBtn').className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-indigo-600';
+            updateDisplay();
+            updateWaterLevel();
+        });
+
+        // Add income
+        function addIncome() {
+            const desc = document.getElementById('incomeDesc').value.trim();
+            const category = document.getElementById('incomeCategory').value;
+            const amount = parseFloat(document.getElementById('incomeAmount').value);
+            
+            if (!desc || !amount || amount <= 0) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+                return;
+            }
+
+            const income = {
+                id: Date.now(),
+                description: desc,
+                category: category,
+                amount: amount,
+                date: new Date().toLocaleDateString('th-TH')
+            };
+
+            data[currentPeriod].income.push(income);
+            saveData();
+            
+            // Clear form
+            document.getElementById('incomeDesc').value = '';
+            document.getElementById('incomeCategory').value = 'freelance';
+            document.getElementById('incomeAmount').value = '';
+            
+            updateDisplay();
+            updateWaterLevel();
+        }
+
+        // Add expense
+        function addExpense() {
+            const desc = document.getElementById('expenseDesc').value.trim();
+            const category = document.getElementById('expenseCategory').value;
+            const amount = parseFloat(document.getElementById('expenseAmount').value);
+            
+            if (!desc || !amount || amount <= 0) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วนและถูกต้อง');
+                return;
+            }
+
+            const expense = {
+                id: Date.now(),
+                description: desc,
+                category: category,
+                amount: amount,
+                date: new Date().toLocaleDateString('th-TH')
+            };
+
+            data[currentPeriod].expenses.push(expense);
+            saveData();
+            
+            // Clear form
+            document.getElementById('expenseDesc').value = '';
+            document.getElementById('expenseCategory').value = 'food';
+            document.getElementById('expenseAmount').value = '';
+            
+            updateDisplay();
+            updateWaterLevel();
+        }
+
+        // Delete income
+        function deleteIncome(id) {
+            data[currentPeriod].income = data[currentPeriod].income.filter(item => item.id !== id);
+            saveData();
+            updateDisplay();
+            updateWaterLevel();
+        }
+
+        // Delete expense
+        function deleteExpense(id) {
+            data[currentPeriod].expenses = data[currentPeriod].expenses.filter(item => item.id !== id);
+            saveData();
+            updateDisplay();
+            updateWaterLevel();
+        }
+
+        // Update display
+        function updateDisplay() {
+            const currentData = data[currentPeriod];
+            
+            // Update totals
+            const totalIncome = currentData.income.reduce((sum, item) => sum + item.amount, 0);
+            const totalExpense = currentData.expenses.reduce((sum, item) => sum + item.amount, 0);
+            const balance = totalIncome - totalExpense;
+
+            document.getElementById('totalIncome').textContent = `฿${totalIncome.toLocaleString()}`;
+            document.getElementById('totalExpense').textContent = `฿${totalExpense.toLocaleString()}`;
+            document.getElementById('balance').textContent = `฿${balance.toLocaleString()}`;
+
+            // Update income list
+            const incomeList = document.getElementById('incomeList');
+            incomeList.innerHTML = '';
+            currentData.income.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-green-50 rounded-lg border border-green-200';
+                
+                const categoryIcons = {
+                    'salary': '💼',
+                    'business': '🏢',
+                    'investment': '📈',
+                    'freelance': '💻',
+                    'bonus': '🎁',
+                    'gift': '💝',
+                    'other': '💰'
+                };
+                
+                const categoryNames = {
+                    'salary': 'เงินเดือน',
+                    'business': 'ธุรกิจ',
+                    'investment': 'การลงทุน',
+                    'freelance': 'งานฟรีแลนซ์',
+                    'bonus': 'โบนัส',
+                    'gift': 'ของขวัญ',
+                    'other': 'อื่นๆ'
+                };
+                
+                const icon = categoryIcons[item.category] || categoryIcons['other'];
+                const categoryName = categoryNames[item.category] || categoryNames['other'];
+                
+                div.innerHTML = `
+                    <div>
+                        <div class="font-medium text-green-800">${icon} ${item.description}</div>
+                        <div class="text-sm text-green-600">${item.date} (${categoryName})</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-semibold text-green-700">฿${item.amount.toLocaleString()}</span>
+                        <button onclick="deleteIncome(${item.id})" class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+                    </div>
+                `;
+                incomeList.appendChild(div);
+            });
+
+            // Update expense list
+            const expenseList = document.getElementById('expenseList');
+            expenseList.innerHTML = '';
+            currentData.expenses.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'flex justify-between items-center p-3 bg-red-50 rounded-lg border border-red-200';
+                
+                const categoryIcons = {
+                    'food': '🍽️',
+                    'transport': '🚗', 
+                    'entertainment': '🎮',
+                    'education': '📚',
+                    'health': '🏥',
+                    'debt': '💳',
+                    'other': '💸'
+                };
+                
+                const categoryNames = {
+                    'food': 'อาหาร',
+                    'transport': 'ค่าเดินทาง', 
+                    'entertainment': 'ความบันเทิง',
+                    'education': 'การศึกษา',
+                    'health': 'สุขภาพ',
+                    'debt': 'ค่าผ่อน/หนี้',
+                    'other': 'อื่นๆ'
+                };
+                
+                const icon = categoryIcons[item.category] || categoryIcons['other'];
+                const categoryName = categoryNames[item.category] || categoryNames['other'];
+                
+                div.innerHTML = `
+                    <div>
+                        <div class="font-medium text-red-800">${icon} ${item.description}</div>
+                        <div class="text-sm text-red-600">${item.date} (${categoryName})</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-semibold text-red-700">฿${item.amount.toLocaleString()}</span>
+                        <button onclick="deleteExpense(${item.id})" class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+                    </div>
+                `;
+                expenseList.appendChild(div);
+            });
+        }
+
+        // Update water level visualization
+        function updateWaterLevel() {
+            const currentData = data[currentPeriod];
+            const totalIncome = currentData.income.reduce((sum, item) => sum + item.amount, 0);
+            const totalExpense = currentData.expenses.reduce((sum, item) => sum + item.amount, 0);
+            const balance = totalIncome - totalExpense;
+            
+            // คำนวณเปอร์เซ็นต์จากรายรับ (ถ้ามีรายรับ 1000 และเหลือ 1000 = 100%)
+            const percentage = totalIncome > 0 ? Math.round((balance / totalIncome) * 100) : 0;
+            
+            // โอ่งมีความสูงจริง 185 pixels (จาก y=130 ถึง y=315)
+            const jarInnerHeight = 185; // ความสูงภายในโอ่ง
+            const jarBottom = 315; // ก้นโอ่งจริง
+            
+            // คำนวณความสูงน้ำ - 100% = เต็มโอ่งจริงๆ
+            const waterHeightPercent = Math.max(0, Math.min(100, percentage));
+            const waterHeight = (waterHeightPercent / 100) * jarInnerHeight;
+            const waterY = jarBottom - waterHeight;
+            
+            // Update water level path
+            const waterLevel = document.getElementById('waterLevel');
+            const waterPattern = document.getElementById('waterPattern');
+            
+            if (balance > 0 && waterHeight > 5) {
+                // น้ำมีรูปร่างเดิมเสมอ แค่ครอปตามระดับ
+                // รูปร่างน้ำเต็มโอ่ง (รูปร่างคงที่)
+                const fullWaterPath = `M245 275 Q350 270 455 275 Q450 295 425 310 L275 310 Q250 295 245 275 Z`;
+                
+                // ใช้ clipPath เพื่อครอปน้ำตามระดับ
+                const clipId = 'waterClip';
+                let clipPath = document.getElementById(clipId);
+                if (!clipPath) {
+                    // สร้าง clipPath ใหม่ถ้ายังไม่มี
+                    const defs = document.querySelector('defs');
+                    clipPath = document.createElementNS('http://www.w3.org/2000/svg', 'clipPath');
+                    clipPath.id = clipId;
+                    defs.appendChild(clipPath);
+                }
+                
+                // สร้าง rectangle สำหรับ clip ตามระดับน้ำ
+                clipPath.innerHTML = `<rect x="240" y="${waterY}" width="220" height="${waterHeight + 5}"/>`;
+                
+                // ตั้งค่า path และ clip
+                waterLevel.setAttribute('d', fullWaterPath);
+                waterPattern.setAttribute('d', fullWaterPath);
+                waterLevel.setAttribute('clip-path', `url(#${clipId})`);
+                waterPattern.setAttribute('clip-path', `url(#${clipId})`);
+                
+                waterLevel.style.opacity = '1';
+                waterPattern.style.opacity = '0.6';
+                
+                // GSAP animation for water
+                gsap.to(waterLevel, {duration: 0.8, ease: "power2.out"});
+            } else {
+                waterLevel.style.opacity = '0';
+                waterPattern.style.opacity = '0';
+            }
+            
+            // Update jar display
+            document.getElementById('jarBalance').textContent = `฿${balance.toLocaleString()}`;
+            document.getElementById('jarPercentage').textContent = `${percentage}%`;
+            
+            // Update arrows
+            updateIncomeArrows();
+            updateExpenseArrows();
+        }
+
+        // Create income arrows with labels and categories
+        function updateIncomeArrows() {
+            const currentData = data[currentPeriod];
+            const incomeArrows = document.getElementById('incomeArrows');
+            incomeArrows.innerHTML = '';
+            
+            // จัดกลุ่มตามหมวดหมู่
+            const groupedIncome = {};
+            currentData.income.forEach(item => {
+                if (!groupedIncome[item.category]) {
+                    groupedIncome[item.category] = [];
+                }
+                groupedIncome[item.category].push(item);
+            });
+            
+            let categoryIndex = 0;
+            Object.keys(groupedIncome).forEach(category => {
+                const items = groupedIncome[category];
+                const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+                
+                // คำนวณตำแหน่งลูกศรให้ชี้ไปที่ปากโอ่ง
+                const startX = 150 + (categoryIndex * 100);
+                const endX = 315 + (categoryIndex * 20); // ชี้ไปที่ปากโอ่ง
+                const endY = 112; // ปากโอ่ง
+                
+                const arrowGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                const categoryColors = {
+                    'freelance': '#10B981',
+                    'parents': '#3B82F6',
+                    'other': '#6B7280'
+                };
+                
+                const categoryIcons = {
+                    'salary': '💼',
+                    'business': '🏢',
+                    'investment': '📈',
+                    'freelance': '💻',
+                    'bonus': '🎁',
+                    'gift': '💝',
+                    'other': '💰'
+                };
+                
+                const categoryNames = {
+                    'salary': 'เงินเดือน',
+                    'business': 'ธุรกิจ',
+                    'investment': 'การลงทุน',
+                    'freelance': 'งานฟรีแลนซ์',
+                    'bonus': 'โบนัส',
+                    'gift': 'ของขวัญ',
+                    'other': 'อื่นๆ'
+                };
+                
+                const color = categoryColors[category] || categoryColors['other'];
+                const icon = categoryIcons[category] || categoryIcons['other'];
+                const categoryName = categoryNames[category] || categoryNames['other'];
+                
+                // เส้นโค้งจากด้านบนลงไปที่ปากโอ่ง
+                const pathData = `M ${startX} 40 Q ${startX} 90 ${endX} ${endY}`;
+                
+                arrowGroup.innerHTML = `
+                    <!-- Curved dashed line flowing to jar mouth -->
+                    <path d="${pathData}" stroke="${color}" stroke-width="4" fill="none" stroke-dasharray="10 5" class="income-flow income-path-${categoryIndex}"/>
+                    <!-- Arrow head pointing to jar mouth -->
+                    <polygon points="${endX-5},${endY-5} ${endX+5},${endY-5} ${endX},${endY+3}" fill="${color}" class="arrow-element arrow-${categoryIndex}"/>
+                    <!-- Static label background -->
+                    <rect x="${startX-40}" y="15" width="80" height="30" rx="6" fill="white" stroke="${color}" stroke-width="2"/>
+                    <!-- Label text -->
+                    <text x="${startX}" y="26" text-anchor="middle" font-size="9" font-weight="bold" fill="${color}">${icon} ${categoryName}</text>
+                    <text x="${startX}" y="37" text-anchor="middle" font-size="10" font-weight="bold" fill="${color}">฿${totalAmount.toLocaleString()}</text>
+                `;
+                
+                incomeArrows.appendChild(arrowGroup);
+                
+                // GSAP animations - เฉพาะเส้นและลูกศร
+                const path = arrowGroup.querySelector(`.income-path-${categoryIndex}`);
+                const arrow = arrowGroup.querySelector(`.arrow-${categoryIndex}`);
+                
+                // Flowing animation for dashed line
+                gsap.to(path, {
+                    strokeDashoffset: -30,
+                    duration: 2,
+                    ease: "none",
+                    repeat: -1
+                });
+                
+                // Bouncing arrow
+                gsap.to(arrow, {
+                    y: -2,
+                    duration: 1,
+                    ease: "power2.inOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+                
+                categoryIndex++;
+            });
+        }
+
+        // Create expense arrows with labels (curved paths from jar bottom flowing down)
+        function updateExpenseArrows() {
+            const currentData = data[currentPeriod];
+            const expenseArrows = document.getElementById('expenseArrows');
+            expenseArrows.innerHTML = '';
+            
+            // จัดกลุ่มตามหมวดหมู่
+            const groupedExpenses = {};
+            currentData.expenses.forEach(item => {
+                if (!groupedExpenses[item.category]) {
+                    groupedExpenses[item.category] = [];
+                }
+                groupedExpenses[item.category].push(item);
+            });
+            
+            let categoryIndex = 0;
+            Object.keys(groupedExpenses).forEach(category => {
+                const items = groupedExpenses[category];
+                const totalAmount = items.reduce((sum, item) => sum + item.amount, 0);
+                
+                // คำนวณตำแหน่งลูกศรออกจากก้นโอ่ง
+                const startX = 300 + (categoryIndex * 40); // ออกจากก้นโอ่ง
+                const startY = 320; // ก้นโอ่ง
+                const endX = 280 + (categoryIndex * 60); // ปลายทางด้านล่าง
+                const endY = 450; // ไหลลงด้านล่าง
+                
+                const arrowGroup = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+                
+                const categoryColors = {
+                    'food': '#F59E0B',
+                    'snacks': '#EC4899',
+                    'water': '#06B6D4',
+                    'electricity': '#FBBF24',
+                    'transport': '#8B5CF6',
+                    'reward': '#10B981',
+                    'debt': '#EF4444',
+                    'share': '#F97316',
+                    'charity': '#84CC16',
+                    'rent': '#6366F1',
+                    'other': '#6B7280'
+                };
+                
+                const categoryIcons = {
+                    'food': '🍽️',
+                    'transport': '🚗', 
+                    'entertainment': '🎮',
+                    'education': '📚',
+                    'health': '🏥',
+                    'debt': '💳',
+                    'other': '💸'
+                };
+                
+                const categoryNames = {
+                    'food': 'อาหาร',
+                    'transport': 'ค่าเดินทาง', 
+                    'entertainment': 'ความบันเทิง',
+                    'education': 'การศึกษา',
+                    'health': 'สุขภาพ',
+                    'debt': 'ค่าผ่อน/หนี้',
+                    'other': 'อื่นๆ'
+                };
+                
+                const color = categoryColors[category] || categoryColors['other'];
+                const icon = categoryIcons[category] || categoryIcons['other'];
+                const categoryName = categoryNames[category] || categoryNames['other'];
+                
+                // Curved path flowing down from jar bottom
+                const pathData = `M ${startX} ${startY} Q ${startX + 10} ${startY + 30} ${endX} ${endY}`;
+                
+                arrowGroup.innerHTML = `
+                    <!-- Curved dashed line flowing down -->
+                    <path d="${pathData}" stroke="${color}" stroke-width="3" fill="none" stroke-dasharray="8 4" class="expense-flow expense-path-${categoryIndex}"/>
+                    <!-- Arrow head pointing down -->
+                    <polygon points="${endX-4},${endY-8} ${endX+4},${endY-8} ${endX},${endY}" fill="${color}" class="arrow-element expense-arrow-${categoryIndex}"/>
+                    <!-- Static label background at bottom -->
+                    <rect x="${endX-45}" y="${endY+5}" width="90" height="32" rx="6" fill="white" stroke="${color}" stroke-width="2"/>
+                    <!-- Label text -->
+                    <text x="${endX}" y="${endY+16}" text-anchor="middle" font-size="8" font-weight="bold" fill="${color}">${icon} ${categoryName}</text>
+                    <text x="${endX}" y="${endY+28}" text-anchor="middle" font-size="9" font-weight="bold" fill="${color}">฿${totalAmount.toLocaleString()}</text>
+                `;
+                
+                expenseArrows.appendChild(arrowGroup);
+                
+                // GSAP animations - เฉพาะเส้นและลูกศร
+                const path = arrowGroup.querySelector(`.expense-path-${categoryIndex}`);
+                const arrow = arrowGroup.querySelector(`.expense-arrow-${categoryIndex}`);
+                
+                // Flowing animation for dashed line (flowing down)
+                gsap.to(path, {
+                    strokeDashoffset: -24,
+                    duration: 2.5,
+                    ease: "none",
+                    repeat: -1
+                });
+                
+                // Bouncing arrow down
+                gsap.to(arrow, {
+                    y: 2,
+                    duration: 1.2,
+                    ease: "power2.inOut",
+                    yoyo: true,
+                    repeat: -1
+                });
+                
+                categoryIndex++;
+            });
+        }
+
+        // Initialize app when page loads
+        window.addEventListener('load', init);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'970af3865101893f',t:'MTc1NTQ1MjM3MS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
