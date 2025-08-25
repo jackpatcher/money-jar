@@ -46,6 +46,7 @@
             <div class="mt-4 flex justify-center items-center space-x-2">
                 <label for="studentName" class="text-indigo-700 font-medium">ชื่อนักเรียน:</label>
                 <input id="studentName" type="text" class="px-3 py-2 border border-indigo-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent text-indigo-800 font-medium" style="min-width:120px;" placeholder="กรอกชื่อ...">
+                <button id="copyLinkBtn" class="ml-4 px-4 py-2 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-700 transition">คัดลอกลิงค์</button>
             </div>
         </div>
 
@@ -254,6 +255,66 @@
     </div>
 
     <script>
+        // --- ฟีเจอร์คัดลอกลิงค์และอัพเดท real-time ---
+        // Real-time polling interval (ms)
+        const POLL_INTERVAL = 1000;
+        let lastJsonString = '';
+
+        // Copy link with current data in query string
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('copyLinkBtn').addEventListener('click', function() {
+                const jsonStr = JSON.stringify(data);
+                const base64 = encodeBase64(jsonStr);
+                const url = new URL(window.location.href);
+                url.searchParams.set('data', base64);
+                navigator.clipboard.writeText(url.toString()).then(() => {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'คัดลอกลิงค์เรียบร้อย!',
+                        text: 'นำลิงค์ไปแชร์หรือเปิดในอุปกรณ์อื่นได้เลย',
+                        timer: 1200,
+                        showConfirmButton: false
+                    });
+                });
+            });
+        });
+
+        // Load data from URL if present
+        function loadDataFromUrl() {
+            const url = new URL(window.location.href);
+            const base64 = url.searchParams.get('data');
+            if (base64) {
+                try {
+                    const jsonStr = decodeBase64(base64);
+                    const newData = JSON.parse(jsonStr);
+                    data = newData;
+                    updateDisplay();
+                    updateWaterLevel();
+                } catch (e) {
+                    // ignore if invalid
+                }
+            }
+        }
+
+        // Real-time update when JSON string changes
+        function startRealtimeJsonPolling() {
+            setInterval(() => {
+                const jsonBox = document.getElementById('jsonDataBox');
+                if (!jsonBox) return;
+                const jsonStr = jsonBox.value.trim();
+                if (jsonStr && jsonStr !== lastJsonString) {
+                    try {
+                        const newData = JSON.parse(jsonStr);
+                        data = newData;
+                        updateDisplay();
+                        updateWaterLevel();
+                        lastJsonString = jsonStr;
+                    } catch (e) {
+                        // ignore invalid JSON
+                    }
+                }
+            }, POLL_INTERVAL);
+        }
         // Data storage using localStorage (JSONP-like local storage)
         let currentPeriod = 'monthly'; // Default to monthly
         let data = {
@@ -342,12 +403,14 @@
 
         // Initialize app
         function init() {
+            loadDataFromUrl(); // โหลดจากลิงค์ก่อน
             loadData();
             // Set button styles for default period
             document.getElementById('monthlyBtn').className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors bg-indigo-500 text-white';
             document.getElementById('weeklyBtn').className = 'px-4 py-2 rounded-md text-sm font-medium transition-colors text-gray-600 hover:text-indigo-600';
             updateDisplay();
             updateWaterLevel();
+            startRealtimeJsonPolling();
         }
 
         // Period switching
